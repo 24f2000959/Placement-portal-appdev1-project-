@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session
 from models.models import db, Admin, Student, Company
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.models import Student, Company, Drive, Application
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -115,7 +116,39 @@ def company_dashboard():
     if session.get("type") != "company":
         return redirect("/login")
 
-    return render_template("company_dashboard.html")
+    company_id = session.get("id")
+
+    drives = Drive.query.filter_by(company_id=company_id).all()
+
+    return render_template("company_dashboard.html", drives=drives)
+
+@app.route("/create_drive", methods=["GET", "POST"])
+def create_drive():
+
+    if session.get("type") != "company":
+        return redirect("/login")
+
+    if request.method == "POST":
+
+        role = request.form["role"]
+        package = request.form["package"]
+        deadline = datetime.strptime(request.form["deadline"], "%Y-%m-%d")
+
+        company_id = session.get("id")
+
+        drive = Drive(
+            role=role,
+            package=package,
+            deadline=deadline,
+            company_id=company_id
+        )
+
+        db.session.add(drive)
+        db.session.commit()
+
+        return redirect("/company_dashboard")
+
+    return render_template("create_drive.html")
 
 
 if __name__ == "__main__":
