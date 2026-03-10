@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from models.models import db, Admin, Student, Company
 from werkzeug.security import generate_password_hash, check_password_hash
+from models.models import Student, Company, Drive, Application
 
 app = Flask(__name__)
 
@@ -85,7 +86,18 @@ def admin_dashboard():
     if session.get("type") != "admin":
         return redirect("/login")
 
-    return render_template("admin_dashboard.html")
+    students = Student.query.all()
+    companies = Company.query.all()
+    drives = Drive.query.all()
+    applications = Application.query.all()
+
+    return render_template(
+        "admin_dashboard.html",
+        students=students,
+        companies=companies,
+        drives=drives,
+        applications=applications
+    )
 
 
 @app.route("/student_dashboard")
